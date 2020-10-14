@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import csv
 import sys
 import re
-
+import threading
+from multiprocessing import Process, Queue
 
 headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -113,6 +114,7 @@ def get_features(detail_container):
 
     return features
 
+
 def resolve_each_page(url):
     result = None
 
@@ -128,7 +130,8 @@ def resolve_each_page(url):
 
     district = summary.find(id='js-ver-mapa-zona').string.strip()
 
-    feature_container = summary.find( 'ul', {'class': 'feature-container'}).find_all('li')
+    feature_container = summary.find(
+        'ul', {'class': 'feature-container'}).find_all('li')
 
     area = None
     roomNum = None
@@ -150,8 +153,8 @@ def resolve_each_page(url):
     features = get_features(detail_container)
 
     # The following variables  can be TRUE,FALSE or None
-    furnished = None  
-    has_parking = None  
+    furnished = None
+    has_parking = None
     has_air = None
     has_elevator = None
 
@@ -167,7 +170,7 @@ def resolve_each_page(url):
                 'aire acondicionado', 'sin aire acondicionado', text)
         if 'ascensor' in text_lower:
             has_elevator = true_false_none('ascensor', 'sin ascensor', text)
-            
+
     features_detail = "%;%".join(features)
     result = {
         'price': price,
@@ -186,31 +189,74 @@ def resolve_each_page(url):
     return result
 
 
+# request pages and put in the pages_url_queue
+def put_pages(pages_url_queue, max_page_number, city_name):
+    for page_idx in range(2):
+        pages = requests_pages(city_name, page_idx)
+        for page in pages:
+            pages_url_queue.put(page)
+    # Indicate that no more data will be put on this queue
+    pages_url_queue.close()
+
+
+# get pages from pages_url_queue and resolve it
+def resolve_each_page_worker(pages_url_queue, lock, csvfile, errlog, count):
+    while not pages_url_queue.empty():
+        page_url = pages_url_queue.get()
+        lock.acquire()
+        try:
+            result = resolve_each_page(page_url)
+            print(result)
+            if result == None:
+                print('{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
+                errlog.write(
+                    '{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
+                continue
+
+            writer.writerow(result)
+        except IOError:
+            print("Unknow io error:")
+        except Exception as e:
+            # catch all unchecked exepcetion
+            print('{},{}\n'.format(page_url, str(e)))
+            errlog.write('{},{}\n'.format(page_url, str(e)))
+        finally:
+            print('Page:{}, count:{}, url:{}'.format(
+                count//15+1, count, page_url))
+            lock.release()
+
+
 if __name__ == "__main__":
     city_name = 'barcelona'
 
-    page_number = request_page_number(city_name)
+    max_page_number = request_page_number(city_name)
 
-    all_pages = []
-    for page_idx in range(1):
-        all_pages = all_pages + requests_pages(city_name, page_idx)
+    # define queues for multithreding
+    pages_url_queue = Queue()
 
+    # This process take care of pages url
+    get_pages_process = Process(target=put_pages, args=(
+        pages_url_queue, max_page_number, city_name))
+    get_pages_process.start()
+
+    get_pages_process.join()
+
+    # This pool of process resolve each page and store to the dataset.csv
+    processes = []
     with open('dataset.csv', 'w', newline='', encoding='utf-8') as csvfile, open('err.log', 'w', encoding='utf-8') as errlog:
+        count = 0
         writer = csv.DictWriter(csvfile, fieldnames=variables)
         writer.writeheader()
-        count = 0
-        for page_url in all_pages:
-            count = count+1
+        while not pages_url_queue.empty():
             try:
+                count = count+1
+                page_url = pages_url_queue.get()
                 result = resolve_each_page(page_url)
-                print('Page:{},count:{},url:{}'.format(
-                    count//15+1, count, page_url))
                 if result == None:
                     print('{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
                     errlog.write(
                         '{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
                     continue
-
                 writer.writerow(result)
             except IOError:
                 print("Unknow io error:")
@@ -218,3 +264,7 @@ if __name__ == "__main__":
                 # catch all unchecked exepcetion
                 print('{},{}\n'.format(page_url, str(e)))
                 errlog.write('{},{}\n'.format(page_url, str(e)))
+            finally:
+                print('Page:{}, count:{}, url:{}'.format(count//15+1, count, page_url))
+
+
