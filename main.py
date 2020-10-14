@@ -30,11 +30,16 @@ variables = {
 def check_robots_file():
     pass
 
+def valid_url(url):
+    if re.match(r"^https:.*?.com/fa\d+$",url ):
+        return False
+
+    return True
 
 def requests_pages(page_idx=None):
     try:
         # first page without index, the rest we need concat the page index
-        page = requests.get('https://www.habitaclia.com/alquiler-palma_de_mallorca{}.htm'.format(
+        page = requests.get('https://www.habitaclia.com/alquiler-barcelona{}.htm'.format(
             '' if page_idx == 0 else '-'+str(page_idx)))
         soup = BeautifulSoup(page.text, features="html.parser")
         section = soup.find('section', {'class': 'list-items'})
@@ -43,7 +48,7 @@ def requests_pages(page_idx=None):
         result = []
         # only articles with data-href
         for article in all_articles:
-            if 'data-href' in article.attrs:
+            if 'data-href' in article.attrs and valid_url(article['data-href']):
                 result.append(article['data-href'])
 
         return result
@@ -78,6 +83,10 @@ def resolve_each_page(url):
     price = summary.find('div', {'class': 'price'}).find(
         'span', {'class': 'font-2'}).string
     name = summary.h1.string
+
+    if summary.find('a', {'id': 'js-ver-mapa-zona'}) ==None:
+        return None
+    
     district = summary.find('a', {'id': 'js-ver-mapa-zona'}).string.strip()
 
     feature_container = summary.find(
@@ -88,7 +97,7 @@ def resolve_each_page(url):
     bathNum=None
 
     for feature in feature_container:
-        if 'm2' in feature.text:
+        if 'm2' in feature.text and '€/m2' not in feature.text:
             area=re.findall('[0-9]+', feature.text)[0]
         if 'hab.' in feature.text:
             roomNum=re.findall('[0-9]+', feature.text)[0]
@@ -102,31 +111,41 @@ def resolve_each_page(url):
     description = detail_container.find('h3', {'id': 'js-detail-description-title'}).text + \
         '.' + \
         detail_container.find(
-            'p', {'id': 'js-detail-description'}).text.replace('\n\r', '.')
+            'p', {'id': 'js-detail-description'}).text.replace('\r', '.').replace('\n','.')
 
-    general_feature_detal = detail_container.find(
-        'h3', string='Características generales').next_sibling.next_sibling
 
-    feature_list = general_feature_detal.find_all(
-        'li', attrs={'class': None})
+
 
     features = []
     furnished = None  # check if the floor is furnished, it can be TRUE,FALSE or None
     has_parking = None  # check if has parking,it can be TRUE,FALSE or None
     has_air = None
-    for each in feature_list:
-        text = each.string.strip()
-        features.append(text)
-        has_parking = true_false_none(
-            'plaza parking', 'sin plaza parking', text)
-        furnished = true_false_none('amueblado', 'sin amueblar', text)
-        has_air = true_false_none(
-            'aire acondicionado', 'sin aire acondicionado', text)
+
+    general_feature_detail = detail_container.find(
+        'h3', string='Características generales')
+    
+    if general_feature_detail != None:
+        community_equipment =detail_container.find(
+        'h3', string='Características generales').next_sibling.next_sibling
+
+        feature_list = general_feature_detail.find_all(
+            'li', attrs={'class': None})
+
+        
+        for each in feature_list:
+            text = each.string.strip()
+            features.append(text)
+            has_parking = true_false_none(
+                'plaza parking', 'sin plaza parking', text)
+            furnished = true_false_none('amueblado', 'sin amueblar', text)
+            has_air = true_false_none(
+                'aire acondicionado', 'sin aire acondicionado', text)
 
         
     
 
     has_elevator =None
+
     community_equipment = detail_container.find('h3', string='Equipamiento comunitario')
     if community_equipment != None:
         community_equipment =detail_container.find('h3', string='Equipamiento comunitario').next_sibling.next_sibling
@@ -138,6 +157,7 @@ def resolve_each_page(url):
             features.append(text)
             if 'ascensor' in text.lower():
                 has_elevator = True
+
 
     features_detail = "%;%".join(features)
     result = {
@@ -159,19 +179,23 @@ def resolve_each_page(url):
 
 if __name__ == "__main__":
     all_pages = []
-    for page_idx in range(4,5):
+    for page_idx in range(893):
         all_pages = all_pages + requests_pages(page_idx)
 
     with open('dataset.csv', 'w', newline='', encoding='utf-8') as csvfile, open('err.log', 'w', encoding='utf-8') as errlog:
         writer = csv.DictWriter(csvfile, fieldnames=['price', 'district', 'area', 'room_num', 'bath_num',
                                                      'furnished', 'has_parking', 'has_elevator', 'has_air', 'features_detail', 'name', 'description'])
         writer.writeheader()
-        for page in all_pages:
-            try:
-                result = resolve_each_page(page)
+        count=0
+        for page_url in all_pages:      
+            count = count+1
 
+            try:
+                result = resolve_each_page(page_url)
+                print('Page:{},count:{},url:{}'.format(count//15+1,count,page_url))
                 if result == None:
-                    errlog.write('{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page))
+                    print('{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
+                    errlog.write('{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
                     continue
 
                 writer.writerow(result)
@@ -179,4 +203,5 @@ if __name__ == "__main__":
                 print("Unknow io error:")
             except Exception as e:
                 # catch all unchecked exepcetion
-                errlog.write('{},{}\n'.format(page, str(e)))
+                print('{},{}\n'.format(page_url, str(e)))
+                errlog.write('{},{}\n'.format(page_url, str(e)))
