@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import sys
+import re
 header = {
     "accept": " text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     "accept-encoding": " gzip, deflate, br",
@@ -82,19 +83,26 @@ def resolve_each_page(url):
     feature_container = summary.find(
         'ul', {'class': 'feature-container'}).find_all('li')
 
-    if(len(feature_container) != 4):
-        return None
+    area = None
+    roomNum =None
+    bathNum=None
 
-    area = feature_container[0].strong.string
-    roomNum = feature_container[1].strong.string
-    bathNum = feature_container[2].strong.string
+    for feature in feature_container:
+        if 'm2' in feature.text:
+            area=re.findall('[0-9]+', feature.text)[0]
+        if 'hab.' in feature.text:
+            roomNum=re.findall('[0-9]+', feature.text)[0]
+        if 'baño' in feature.text:
+            bathNum= re.findall('[0-9]+', feature.text)[0]
+
+
 
     detail_container = soup.find('section', {'class': 'detail'})
 
     description = detail_container.find('h3', {'id': 'js-detail-description-title'}).text + \
         '.' + \
         detail_container.find(
-            'p', {'id': 'js-detail-description'}).text.replace('\n', '')
+            'p', {'id': 'js-detail-description'}).text.replace('\n\r', '.')
 
     general_feature_detal = detail_container.find(
         'h3', string='Características generales').next_sibling.next_sibling
@@ -151,8 +159,8 @@ def resolve_each_page(url):
 
 if __name__ == "__main__":
     all_pages = []
-    for page_idx in range(6, 7):
-        all_pages = all_pages + requests_pages(0)
+    for page_idx in range(4,5):
+        all_pages = all_pages + requests_pages(page_idx)
 
     with open('dataset.csv', 'w', newline='', encoding='utf-8') as csvfile, open('err.log', 'w', encoding='utf-8') as errlog:
         writer = csv.DictWriter(csvfile, fieldnames=['price', 'district', 'area', 'room_num', 'bath_num',
