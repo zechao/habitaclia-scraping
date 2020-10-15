@@ -252,11 +252,12 @@ def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
 
         cout, page_url = data
         with print_lock:
-            print('Resolving Page:{},Count:{}, URL:{},'.format(cout//15, cout, page_url))
+            print('Resolving Page:{},Count:{}, URL:{},'.format(
+                cout//15, cout, page_url))
         try:
             html_text = resquest_each_page(page_url)
             result = resolve_each_page(html_text)
-            
+
             if result == None:
                 with print_lock:
                     print('ERROR!!!!NOT ENOUGH DATA!!!:{},\n'.format(page_url))
@@ -269,10 +270,12 @@ def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
             pages_url_queue.task_done()
 
 # worker that store date in csv file
+
+
 def write_file_worker(writer, file_lock, result_queue):
     while True:
         try:
-            result = result_queue.get(True, 30)
+            result = result_queue.get(True, 60)
         except Exception:
             print("No more element to write in file")
             break
