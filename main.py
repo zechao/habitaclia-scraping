@@ -25,7 +25,8 @@ variables = ['price',  # Mandatory
              'has_parking',  # Important info that affect the price
              'has_elevator',  # Important info that affect the price
              'has_air',  # Important info that affect the price
-             'distributions_detail',  # Contain detail information the distribution of the rooms, kitchen, etc.
+             # Contain detail information the distribution of the rooms, kitchen, etc.
+             'distributions_detail',
              'features_detail',  # detail info contains featureas of the floor which affect the price
              'name',  # contains useful information
              'description'  # contains a description written by the owner which contains useful information
@@ -286,7 +287,7 @@ if __name__ == "__main__":
     # Queue for store the page result to store in the csv file
     result_queue = queue.Queue()
     # Queue for store pages that need be resolved
-    pages_url_queue = queue.Queue(min(os.cpu_count()*4,30))
+    pages_url_queue = queue.Queue(min(os.cpu_count()*4, 30))
 
     csvfile = open('dataset.csv', 'w', newline='', encoding='utf-8')
     writer = csv.DictWriter(csvfile, fieldnames=variables)
