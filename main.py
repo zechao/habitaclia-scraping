@@ -5,9 +5,8 @@ import sys
 import os
 import re
 from multiprocessing import Lock
-import concurrent.futures
-import time
-from bounded_pool_executor import BoundedProcessPoolExecutor
+import queue
+import threading
 
 headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -26,6 +25,7 @@ variables = ['price',  # Mandatory
              'has_parking',  # Important info that affect the price
              'has_elevator',  # Important info that affect the price
              'has_air',  # Important info that affect the price
+             'distributions_detail',  # Contain information about metting room and kitchen
              'features_detail',  # detail info contains featureas of the floor which affect the price
              'name',  # contains useful information
              'description'  # contains a description written by the owner that contains useful information
@@ -107,10 +107,9 @@ def get_features(detail_container):
         'h3', string='Características generales')
 
     if general_feature_detail != None:
-        general_feature_detail = general_feature_detail.find_next('ul')
+        ul_node = general_feature_detail.find_next('ul')
 
-        feature_list = general_feature_detail.find_all(
-            'li', attrs={'class': None})
+        feature_list = ul_node.find_all('li', attrs={'class': None})
 
         for each in feature_list:
             text = each.string.strip()
@@ -120,8 +119,8 @@ def get_features(detail_container):
         'h3', string='Equipamiento comunitario')
 
     if community_equipment != None:
-        community_equipment = community_equipment.find_next('ul')
-        equipment_list = community_equipment.find_all('li')
+        ul_node = community_equipment.find_next('ul')
+        equipment_list = ul_node.find_all('li')
         for each in equipment_list:
             text = each.string.strip()
             features.append(text)
@@ -129,11 +128,29 @@ def get_features(detail_container):
     return features
 
 
-def resolve_each_page(url):
-    result = None
+def get_distribution(detail_container):
+    distribution = []
+    distribution_detail = detail_container.find(
+        'h3', string='Distribución')
+    if distribution_detail != None:
+        ul_node = distribution_detail.find_next('ul')
+        distribution_list = ul_node.find_all('li')
 
+        for each in distribution_list:
+            text = each.text.strip()
+            distribution.append(text)
+
+    return distribution
+
+
+def resquest_each_page(url):
     page = requests.get(url, headers=headers)
-    soup = BeautifulSoup(page.text, features="html.parser")
+    return page.text
+
+
+def resolve_each_page(text):
+    result = None
+    soup = BeautifulSoup(text, features="html.parser")
     summary = soup.find('div', {'class': 'summary-left'})
     price = summary.find('div', {'class': 'price'}).find(
         'span', {'class': 'font-2'}).string
@@ -165,6 +182,7 @@ def resolve_each_page(url):
                                  detail_container.find(id='js-detail-description').text.replace('\r', '.').replace('\n', '.'))
 
     features = get_features(detail_container)
+    distributions = get_distribution(detail_container)
 
     # The following variables can be TRUE,FALSE or None
     furnished = None
@@ -186,6 +204,7 @@ def resolve_each_page(url):
             has_elevator = true_false_none('ascensor', 'sin ascensor', text)
 
     features_detail = "%;%".join(features)
+    distributions_detail = "%;%".join(distributions)
     result = {
         'price': price,
         'district': district,
@@ -196,6 +215,7 @@ def resolve_each_page(url):
         'has_parking': has_parking,
         'has_elevator': has_elevator,
         'has_air': has_air,
+        'distributions_detail': distributions_detail,
         'features_detail': features_detail,
         'name': name,
         'description': description
@@ -203,25 +223,54 @@ def resolve_each_page(url):
     return result
 
 
-def get_pages(page_idx, city_name):
-    pages = requests_pages(city_name, page_idx)
-    results = []
+# worker that get url from each page
+def get_pages_url_worker(max_page_number, resolve_threads_number, city_name, pages_url_queue):
     count = 0
-    for page_url in pages:
-        count = count+1
+    for page_idx in range(max_page_number):
+        pages = requests_pages(city_name, page_idx)
+        for page in pages:
+            count = count + 1
+            pages_url_queue.put([count, page])
+    for _ in range(resolve_threads_number):
+        pages_url_queue.put('stop')
+
+
+# worker that resolve each page_url in the pages_url_queue and store result in result_queue
+def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
+    while True:
+        data = pages_url_queue.get()
+        if data == 'stop':
+            break
+
+        cout, page_url = data
+        with print_lock:
+            print('Resolving Page:{},Count:{}, URL:{},'.format(
+                cout//15, cout, page_url))
         try:
-            print('Resolving Page:{},Count{},URL:{}'.format(
-                page_idx, count, page_url))
-            result = resolve_each_page(page_url)
+            html_text = resquest_each_page(page_url)
+            result = resolve_each_page(html_text)
+            pages_url_queue.task_done()
             if result == None:
-                print('ERROR!!!!NOT ENOUGH DATA!!!:{},\n'.format(page_url))
+                with print_lock:
+                    print('ERROR!!!!NOT ENOUGH DATA!!!:{},\n'.format(page_url))
             else:
-                results.append(result)
+                result_queue.put(result)
         except Exception as e:
+            with print_lock:
+                print('UNEXPECTED EROOR:[{}]!!:{}\n'.format(str(e), page_url))
 
-            print('UNEXPECTED EROOR:[{}]!!:{}\n'.format(str(e), page_url))
 
-    return results
+# worker that store date in csv file
+def write_file_worker(writer, file_lock, result_queue):
+    while True:
+        try:
+            result = result_queue.get(True, 10)
+        except Exception:
+            print("No more element to write in file")
+            break
+        with file_lock:
+            writer.writerow(result)
+        result_queue.task_done()
 
 
 if __name__ == "__main__":
@@ -231,21 +280,37 @@ if __name__ == "__main__":
     print('Max page number is:[{}], estimate url to resolve:[{}]'.format(
         max_page_number, max_page_number*15))
 
-    # define number of worker to run,defeault None
-    worker_num = None
+    # lock to avoid race condition
+    file_lock = Lock()
+    print_lock = Lock()
+    # Queue for store the page result to store in the csv file
+    result_queue = queue.Queue()
+    # Queue for store pages that need be resolved
+    pages_url_queue = queue.Queue(min(os.cpu_count()*4,30))
 
-    with open('dataset.csv', 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=variables)
-        writer.writeheader()
+    csvfile = open('dataset.csv', 'w', newline='', encoding='utf-8')
+    writer = csv.DictWriter(csvfile, fieldnames=variables)
+    writer.writeheader()
 
-        with concurrent.futures.ThreadPoolExecutor(worker_num) as executor:
-            future_work = {executor.submit(get_pages, page_idx, city_name): page_idx for page_idx in (
-                x for x in range(max_page_number))}
-            for future in concurrent.futures.as_completed(future_work):
-                page_idx = future_work[future]
-                try:
-                    results = future.result()
-                    for result in results:
-                        writer.writerow(result)
-                except Exception as exc:
-                    print('%r generated an exception: %s' % (results, exc))
+    resolve_threads_number = os.cpu_count()*2
+    resolve_threads_list = []
+    # Thread that get pages
+    get_pages_thread = threading.Thread(target=get_pages_url_worker, args=(
+        max_page_number, resolve_threads_number, city_name, pages_url_queue))
+    get_pages_thread.start()
+
+    # Threads that store data in csv file
+    write_file_thread = threading.Thread(
+        target=write_file_worker, args=(writer, file_lock, result_queue))
+    write_file_thread.start()
+
+    # Threads that resolve all pages
+    for x in range(resolve_threads_number):
+        t = threading.Thread(target=page_resolve_worker, args=(
+            pages_url_queue,  result_queue, print_lock))
+        t.start()
+        resolve_threads_list.append(t)
+
+    # block until all tasks are done
+    pages_url_queue.join()
+    result_queue.join()
