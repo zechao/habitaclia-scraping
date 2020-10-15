@@ -2,9 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import sys
+import os
 import re
-import threading
-from multiprocessing import Process, Queue
+from multiprocessing import Lock
+import concurrent.futures
+import time
+from bounded_pool_executor import BoundedProcessPoolExecutor
 
 headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -14,12 +17,23 @@ headers = {
 }
 
 # field names of our csv file.
-variables = ['price', 'district', 'area', 'room_num', 'bath_num', 'furnished',
-             'has_parking', 'has_elevator', 'has_air', 'features_detail', 'name', 'description']
+variables = ['price',  # Mandatory
+             'district',  # Mandatory
+             'area',  # Mandatory
+             'room_num',  # Mandatory
+             'bath_num',  # Mandatory
+             'furnished',  # Important info that affect the price
+             'has_parking',  # Important info that affect the price
+             'has_elevator',  # Important info that affect the price
+             'has_air',  # Important info that affect the price
+             'features_detail',  # detail info contains featureas of the floor which affect the price
+             'name',  # contains useful information
+             'description'  # contains a description written by the owner that contains useful information
+             ]
 
 
+# some url are invalid because the data are not belong to the original web, they belong to the partner web.
 def valid_url(url):
-    """some url are invalid because the data are not belong  to the original web, they belong to the partner web."""
     if re.match(r"^https:.*?.com/fa\d+$", url):
         return False
     return True
@@ -152,7 +166,7 @@ def resolve_each_page(url):
 
     features = get_features(detail_container)
 
-    # The following variables  can be TRUE,FALSE or None
+    # The following variables can be TRUE,FALSE or None
     furnished = None
     has_parking = None
     has_air = None
@@ -189,82 +203,49 @@ def resolve_each_page(url):
     return result
 
 
-# request pages and put in the pages_url_queue
-def put_pages(pages_url_queue, max_page_number, city_name):
-    for page_idx in range(2):
-        pages = requests_pages(city_name, page_idx)
-        for page in pages:
-            pages_url_queue.put(page)
-    # Indicate that no more data will be put on this queue
-    pages_url_queue.close()
-
-
-# get pages from pages_url_queue and resolve it
-def resolve_each_page_worker(pages_url_queue, lock, csvfile, errlog, count):
-    while not pages_url_queue.empty():
-        page_url = pages_url_queue.get()
-        lock.acquire()
+def get_pages(page_idx, city_name):
+    pages = requests_pages(city_name, page_idx)
+    results = []
+    count = 0
+    for page_url in pages:
+        count = count+1
         try:
+            print('Resolving Page:{},Count{},URL:{}'.format(
+                page_idx, count, page_url))
             result = resolve_each_page(page_url)
-            print(result)
             if result == None:
-                print('{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
-                errlog.write(
-                    '{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
-                continue
-
-            writer.writerow(result)
-        except IOError:
-            print("Unknow io error:")
+                print('ERROR!!!!NOT ENOUGH DATA!!!:{},\n'.format(page_url))
+            else:
+                results.append(result)
         except Exception as e:
-            # catch all unchecked exepcetion
-            print('{},{}\n'.format(page_url, str(e)))
-            errlog.write('{},{}\n'.format(page_url, str(e)))
-        finally:
-            print('Page:{}, count:{}, url:{}'.format(
-                count//15+1, count, page_url))
-            lock.release()
+
+            print('UNEXPECTED EROOR:[{}]!!:{}\n'.format(str(e), page_url))
+
+    return results
 
 
 if __name__ == "__main__":
     city_name = 'barcelona'
-
+    # Get max page to resolve
     max_page_number = request_page_number(city_name)
+    print('Max page number is:[{}], estimate url to resolve:[{}]'.format(
+        max_page_number, max_page_number*15))
 
-    # define queues for multithreding
-    pages_url_queue = Queue()
+    # define number of worker to run,defeault None
+    worker_num = None
 
-    # This process take care of pages url
-    get_pages_process = Process(target=put_pages, args=(
-        pages_url_queue, max_page_number, city_name))
-    get_pages_process.start()
-
-    get_pages_process.join()
-
-    # This pool of process resolve each page and store to the dataset.csv
-    processes = []
-    with open('dataset.csv', 'w', newline='', encoding='utf-8') as csvfile, open('err.log', 'w', encoding='utf-8') as errlog:
-        count = 0
+    with open('dataset.csv', 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=variables)
         writer.writeheader()
-        while not pages_url_queue.empty():
-            try:
-                count = count+1
-                page_url = pages_url_queue.get()
-                result = resolve_each_page(page_url)
-                if result == None:
-                    print('{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
-                    errlog.write(
-                        '{},ERROR!!!!NOT ENOUGH DATA!!!\n'.format(page_url))
-                    continue
-                writer.writerow(result)
-            except IOError:
-                print("Unknow io error:")
-            except Exception as e:
-                # catch all unchecked exepcetion
-                print('{},{}\n'.format(page_url, str(e)))
-                errlog.write('{},{}\n'.format(page_url, str(e)))
-            finally:
-                print('Page:{}, count:{}, url:{}'.format(count//15+1, count, page_url))
 
-
+        with concurrent.futures.ThreadPoolExecutor(worker_num) as executor:
+            future_work = {executor.submit(get_pages, page_idx, city_name): page_idx for page_idx in (
+                x for x in range(max_page_number))}
+            for future in concurrent.futures.as_completed(future_work):
+                page_idx = future_work[future]
+                try:
+                    results = future.result()
+                    for result in results:
+                        writer.writerow(result)
+                except Exception as exc:
+                    print('%r generated an exception: %s' % (results, exc))
