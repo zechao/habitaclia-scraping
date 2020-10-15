@@ -162,7 +162,7 @@ def resolve_each_page(text):
     summary = soup.find('div', {'class': 'summary-left'})
     price = summary.find('div', {'class': 'price'}).find(
         'span', {'class': 'font-2'}).string
-    name = summary.h1.string
+    name = summary.h1.text.replace('\n', '.').replace('\r', '.')
 
     if summary.find(id='js-ver-mapa-zona') == None:
         return None
@@ -187,8 +187,8 @@ def resolve_each_page(text):
     detail_container = soup.find('section', {'class': 'detail'})
 
     description = '{}.{}'.format(detail_container.find(id='js-detail-description-title').text,
-                                 detail_container.find(id='js-detail-description').text.replace('\r', '.').replace('\n', '.'))
-
+                                 detail_container.find(id='js-detail-description').text)
+    description = description.replace('\r', '.').replace('\n', '.')
     features = get_features(detail_container)
     distributions = get_distribution(detail_container)
 
@@ -315,16 +315,28 @@ def main():
         target=write_file_worker, args=(writer, file_lock, result_queue))
     write_file_thread.start()
 
+    threads = []
     # Threads that resolve all pages
     for x in range(resolve_threads_number):
         t = threading.Thread(target=page_resolve_worker, args=(
             pages_url_queue,  result_queue, print_lock, ), name='Thread resolver '+str(x))
+        threads.append(t)
         t.start()
         resolve_threads_list.append(t)
 
     # block until all tasks are done
     pages_url_queue.join()
     result_queue.join()
+    get_pages_thread.join()
+    for t in threads:
+        t.join()
+    write_file_thread.join()
+
+
+def test_page(page_url):
+    html_text = resquest_each_page(page_url)
+    result = resolve_each_page(html_text)
+    print(result)
 
 
 if __name__ == "__main__":
