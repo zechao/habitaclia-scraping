@@ -25,10 +25,10 @@ variables = ['price',  # Mandatory
              'has_parking',  # Important info that affect the price
              'has_elevator',  # Important info that affect the price
              'has_air',  # Important info that affect the price
-             'distributions_detail',  # Contain information about metting room and kitchen
+             'distributions_detail',  # Contain detail information the distribution of the rooms, kitchen, etc.
              'features_detail',  # detail info contains featureas of the floor which affect the price
              'name',  # contains useful information
-             'description'  # contains a description written by the owner that contains useful information
+             'description'  # contains a description written by the owner which contains useful information
              ]
 
 
