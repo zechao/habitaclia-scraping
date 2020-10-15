@@ -32,8 +32,11 @@ variables = ['price',  # Mandatory
              'description'  # contains a description written by the owner which contains useful information
              ]
 
+bf4parser = 'lxml'
 
 # some url are invalid because the data are not belong to the original web, they belong to the partner web.
+
+
 def valid_url(url):
     if re.match(r"^https:.*?.com/fa\d+$", url):
         return False
@@ -41,21 +44,25 @@ def valid_url(url):
 
 
 def request_page_number(city_name):
-    url = 'https://www.habitaclia.com/alquiler-{}.htm'.format(city_name)
-    page = requests.get(url, headers=headers)
-    soup = BeautifulSoup(page.text, features="html.parser")
-    aside = soup.find(id='js-nav')
-    li_next = aside.find('li', {'class': 'next'})
-    if li_next == None:
-        return 1
-    else:
-        max_page_text = li_next.previous_element.find_previous_sibling(
-            'li').text.strip('\n')
-        if max_page_text.isdigit():
-            return int(max_page_text)
+    try:
+        url = 'https://www.habitaclia.com/alquiler-{}.htm'.format(city_name)
+        page = requests.get(url, headers=headers)
+        soup = BeautifulSoup(page.text, features=bf4parser)
+        aside = soup.find(id='js-nav')
+        li_next = aside.find('li', {'class': 'next'})
+        if li_next == None:
+            return 1
         else:
-            print('Unknow error while getting max page number:', str(e))
-            sys.exit(0)
+            max_page_text = li_next.previous_element.find_previous_sibling(
+                'li').text.strip('\n')
+            if max_page_text.isdigit():
+                return int(max_page_text)
+            else:
+                raise Exception(
+                    'incorrect page number:[{}]'.format(max_page_text))
+    except Exception as e:
+        print('Unknow error while getting max page number:', str(e))
+        sys.exit(0)
 
 
 def build_page_url(city_name, page_idx):
@@ -69,7 +76,7 @@ def requests_pages(city_name, page_idx=None):
         # first page without index, the rest we need concat the page index
         page = requests.get(build_page_url(
             city_name, page_idx), headers=headers)
-        soup = BeautifulSoup(page.text, features="html.parser")
+        soup = BeautifulSoup(page.text, features=bf4parser)
         section = soup.find('section', {'class': 'list-items'})
         all_articles = section.find_all('article')
 
@@ -151,7 +158,7 @@ def resquest_each_page(url):
 
 def resolve_each_page(text):
     result = None
-    soup = BeautifulSoup(text, features="html.parser")
+    soup = BeautifulSoup(text, features=bf4parser)
     summary = soup.find('div', {'class': 'summary-left'})
     price = summary.find('div', {'class': 'price'}).find(
         'span', {'class': 'font-2'}).string
@@ -245,12 +252,11 @@ def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
 
         cout, page_url = data
         with print_lock:
-            print('Resolving Page:{},Count:{}, URL:{},'.format(
-                cout//15, cout, page_url))
+            print('Resolving Page:{},Count:{}, URL:{},'.format(cout//15, cout, page_url))
         try:
             html_text = resquest_each_page(page_url)
             result = resolve_each_page(html_text)
-            pages_url_queue.task_done()
+            
             if result == None:
                 with print_lock:
                     print('ERROR!!!!NOT ENOUGH DATA!!!:{},\n'.format(page_url))
@@ -259,13 +265,14 @@ def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
         except Exception as e:
             with print_lock:
                 print('UNEXPECTED EROOR:[{}]!!:{}\n'.format(str(e), page_url))
-
+        finally:
+            pages_url_queue.task_done()
 
 # worker that store date in csv file
 def write_file_worker(writer, file_lock, result_queue):
     while True:
         try:
-            result = result_queue.get(True, 10)
+            result = result_queue.get(True, 30)
         except Exception:
             print("No more element to write in file")
             break
@@ -274,7 +281,7 @@ def write_file_worker(writer, file_lock, result_queue):
         result_queue.task_done()
 
 
-if __name__ == "__main__":
+def main():
     city_name = 'barcelona'
     # Get max page to resolve
     max_page_number = request_page_number(city_name)
@@ -297,7 +304,7 @@ if __name__ == "__main__":
     resolve_threads_list = []
     # Thread that get pages
     get_pages_thread = threading.Thread(target=get_pages_url_worker, args=(
-        max_page_number, resolve_threads_number, city_name, pages_url_queue))
+        max_page_number, resolve_threads_number, city_name, pages_url_queue), name='Thread get page worker')
     get_pages_thread.start()
 
     # Threads that store data in csv file
@@ -308,10 +315,14 @@ if __name__ == "__main__":
     # Threads that resolve all pages
     for x in range(resolve_threads_number):
         t = threading.Thread(target=page_resolve_worker, args=(
-            pages_url_queue,  result_queue, print_lock))
+            pages_url_queue,  result_queue, print_lock, ), name='Thread resolver '+str(x))
         t.start()
         resolve_threads_list.append(t)
 
     # block until all tasks are done
     pages_url_queue.join()
     result_queue.join()
+
+
+if __name__ == "__main__":
+    main()
