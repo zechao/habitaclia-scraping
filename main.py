@@ -32,20 +32,26 @@ variables = ['price',  # Mandatory
              'description'  # contains a description written by the owner which contains useful information
              ]
 
-bf4parser = 'lxml'
+# you can search rent or sale informaticon
+rent = 'alquiler'
+sale = 'viviendas'
 
-# some url are invalid because the data are not belong to the original web, they belong to the partner web.
+
+bf4parser = 'lxml'
 
 
 def valid_url(url):
+    """some url are invalid because the data are not belong to the original web, they belong to the partner web."""
     if re.match(r"^https:.*?.com/fa\d+$", url):
         return False
     return True
 
 
-def request_page_number(city_name):
+def request_page_number(search_type, city_name):
+    """given the search_type and city_name return the number of pagination"""
     try:
-        url = 'https://www.habitaclia.com/alquiler-{}.htm'.format(city_name)
+        url = 'https://www.habitaclia.com/{}-{}.htm'.format(
+            search_type, city_name)
         page = requests.get(url, headers=headers)
         soup = BeautifulSoup(page.text, features=bf4parser)
         aside = soup.find(id='js-nav')
@@ -65,17 +71,18 @@ def request_page_number(city_name):
         sys.exit(0)
 
 
-def build_page_url(city_name, page_idx):
-    url = 'https://www.habitaclia.com/alquiler-{}{}.htm'.format(city_name,
-                                                                '' if page_idx == 0 else '-'+str(page_idx))
+def build_page_url(search_type, city_name, page_idx):
+    url = 'https://www.habitaclia.com/{}-{}{}.htm'.format(search_type, city_name,
+                                                          '' if page_idx == 0 else '-'+str(page_idx))
     return url
 
 
-def requests_pages(city_name, page_idx=None):
+def requests_pages(search_type, city_name, page_idx=None):
+    """request url of each pagination"""
     try:
         # first page without index, the rest we need concat the page index
-        page = requests.get(build_page_url(
-            city_name, page_idx), headers=headers)
+        page = requests.get(build_page_url(search_type,
+                                           city_name, page_idx), headers=headers)
         soup = BeautifulSoup(page.text, features=bf4parser)
         section = soup.find('section', {'class': 'list-items'})
         all_articles = section.find_all('article')
@@ -91,14 +98,8 @@ def requests_pages(city_name, page_idx=None):
         print('Unknow error while requesting pages:', str(e))
 
 
-def contain_text(text_to_search, *texts):
-    for text in texts:
-        if text_to_search in text.lower():
-            return True
-    return False
-
-
 def true_false_none(true_str, false_str, *search_texts):
+    """search in the text if contain some string and return TRUE,FALSE or None"""
     result = None
     for text in search_texts:
         if true_str in text.lower():
@@ -109,6 +110,7 @@ def true_false_none(true_str, false_str, *search_texts):
 
 
 def get_features(detail_container):
+    """get list of feature of each floor"""
     features = []
     general_feature_detail = detail_container.find(
         'h3', string='Características generales')
@@ -136,6 +138,7 @@ def get_features(detail_container):
 
 
 def get_distribution(detail_container):
+    """get list of distribution of each floor"""
     distribution = []
     distribution_detail = detail_container.find(
         'h3', string='Distribución')
@@ -156,6 +159,7 @@ def resquest_each_page(url):
 
 
 def resolve_each_page(text):
+    """the main function of this scraper resolve the page and return the result"""
     result = None
     soup = BeautifulSoup(text, features=bf4parser)
     summary = soup.find('div', {'class': 'summary-left'})
@@ -230,19 +234,20 @@ def resolve_each_page(text):
     return result
 
 
-# worker that get url from each page
-def get_pages_url_worker(max_page_number, resolve_threads_number, city_name, pages_url_queue):
+def get_pages_url_worker(max_page_number, resolve_threads_number, search_type, city_name, pages_url_queue):
+    """worker that get url from each page"""
     count = 0
     for page_idx in range(max_page_number):
-        pages = requests_pages(city_name, page_idx)
+        pages = requests_pages(search_type, city_name, page_idx)
         for page in pages:
             count = count + 1
             pages_url_queue.put([count, page])
     for _ in range(resolve_threads_number):
         pages_url_queue.put('stop')
 
-# worker that resolve each page_url in the pages_url_queue and store result in result_queue
+
 def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
+    """worker that resolve each page_url in the pages_url_queue and store result in result_queue"""
     while True:
         data = pages_url_queue.get()
         if data == 'stop':
@@ -269,9 +274,8 @@ def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
     result_queue.put('stop')
 
 
-
-# worker that store date in csv file
 def write_file_worker(writer, file_lock, result_queue, resolve_threads_number):
+    """worker that store date in csv file"""
     done_count = 0
     while True:
         try:
@@ -290,10 +294,10 @@ def write_file_worker(writer, file_lock, result_queue, resolve_threads_number):
         result_queue.task_done()
 
 
-def main():
-    city_name = 'barcelona'
+def main(city_name, search_type):
+
     # Get max page to resolve
-    max_page_number = request_page_number(city_name)
+    max_page_number = request_page_number(search_type, city_name)
     print('Max page number is:[{}], estimate url to resolve:[{}]'.format(
         max_page_number, max_page_number*15))
 
@@ -313,7 +317,7 @@ def main():
     resolve_threads_list = []
     # Thread that get pages
     get_pages_thread = threading.Thread(target=get_pages_url_worker, args=(
-        max_page_number, resolve_threads_number, city_name, pages_url_queue), name='Thread get page worker')
+        max_page_number, resolve_threads_number, search_type, city_name, pages_url_queue), name='Thread get page worker')
     get_pages_thread.start()
 
     # Threads that store data in csv file
@@ -346,4 +350,7 @@ def test_page(page_url):
 
 
 if __name__ == "__main__":
-    main()
+    # you can search rent or sale informaticon by setting rent or sale
+    city_name = 'barcelona'
+    search_type = rent
+    main(city_name, search_type)
