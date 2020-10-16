@@ -89,7 +89,6 @@ def requests_pages(city_name, page_idx=None):
         return result
     except Exception as e:
         print('Unknow error while requesting pages:', str(e))
-        sys.exit(0)
 
 
 def contain_text(text_to_search, *texts):
@@ -242,7 +241,6 @@ def get_pages_url_worker(max_page_number, resolve_threads_number, city_name, pag
     for _ in range(resolve_threads_number):
         pages_url_queue.put('stop')
 
-
 # worker that resolve each page_url in the pages_url_queue and store result in result_queue
 def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
     while True:
@@ -253,7 +251,7 @@ def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
         cout, page_url = data
         with print_lock:
             print('Resolving Page:{},Count:{}, URL:{},'.format(
-                cout//15, cout, page_url))
+                cout//16+1, cout, page_url))
         try:
             html_text = resquest_each_page(page_url)
             result = resolve_each_page(html_text)
@@ -268,14 +266,22 @@ def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
                 print('UNEXPECTED EROOR:[{}]!!:{}\n'.format(str(e), page_url))
         finally:
             pages_url_queue.task_done()
+    result_queue.put('stop')
+
+
 
 # worker that store date in csv file
-
-
-def write_file_worker(writer, file_lock, result_queue):
+def write_file_worker(writer, file_lock, result_queue, resolve_threads_number):
+    done_count = 0
     while True:
         try:
-            result = result_queue.get(True, 60)
+            result = result_queue.get()
+            if result == 'stop':
+                done_count = done_count+1
+                if resolve_threads_number == done_count:
+                    break
+                else:
+                    continue
         except Exception:
             print("No more element to write in file")
             break
@@ -297,13 +303,13 @@ def main():
     # Queue for store the page result to store in the csv file
     result_queue = queue.Queue()
     # Queue for store pages that need be resolved
-    pages_url_queue = queue.Queue(min(os.cpu_count()*4, 30))
+    pages_url_queue = queue.Queue(max(os.cpu_count()*20, 10))
 
     csvfile = open('dataset.csv', 'w', newline='', encoding='utf-8')
     writer = csv.DictWriter(csvfile, fieldnames=variables)
     writer.writeheader()
 
-    resolve_threads_number = os.cpu_count()*2
+    resolve_threads_number = min(15, os.cpu_count()*4)
     resolve_threads_list = []
     # Thread that get pages
     get_pages_thread = threading.Thread(target=get_pages_url_worker, args=(
@@ -312,7 +318,7 @@ def main():
 
     # Threads that store data in csv file
     write_file_thread = threading.Thread(
-        target=write_file_worker, args=(writer, file_lock, result_queue))
+        target=write_file_worker, args=(writer, file_lock, result_queue, resolve_threads_number))
     write_file_thread.start()
 
     threads = []
