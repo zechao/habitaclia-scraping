@@ -42,7 +42,7 @@ bf4parser = 'lxml'
 
 def valid_url(url):
     """some url are invalid because the data are not belong to the original web, they belong to the partner web."""
-    if re.match(r"^https:.*?.com/fa\d+$", url):
+    if re.match(r"^https:.*?.com/f[a|v]\d+$", url):
         return False
     return True
 
