@@ -17,5 +17,5 @@ Un dataset sobre **los pisos que están en alquiler en barcelona**, aunque el sc
 - Unos workers **page_resolve_worker** encargan de traer datos de cada página, el resultado se guarda en otra cola **result_queue**
 - **write_file_worker** se encarga de escribir los datos en el archivo dataset.csv
 
-En la siguiente figura muestra el flujo de nuestro web scraper concurrente
+En la siguiente figura muestra el flujo de nuestro web scraper concurrente usando multithreding y colas.
 ![flujo](img/flujo.png)
