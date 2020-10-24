@@ -1,7 +1,7 @@
 # Práctica 1: Web scraping
 
 ## Descripción
-Un dataset sobre **los pisos que están en alquiler en barcelona**, aunque el scraper está diseñado para poder recuperar otra ciudad cambiando la variable **city_name = 'barcelona'**, también se puede recuperar datos de pisos en venta 
+Un dataset sobre **los pisos que están en alquiler en barcelona**, aunque el scraper está diseñado para poder recuperar otra ciudad cambiando la variable **city_name = 'barcelona'** en el main, también se puede recuperar datos de pisos en venta cambiando **search_type=sale**  en el main.
 
 ## Miembro del equipo
 - Daria Gracheva 
