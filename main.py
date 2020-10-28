@@ -16,7 +16,7 @@ headers = {
 }
 
 # field names of our csv file.
-variables = ['price',  # Mandatory
+variables = ['price_euro',  # Mandatory
              'district',  # Mandatory
              'area',  # Mandatory
              'room_num',  # Mandatory
@@ -157,6 +157,8 @@ def resquest_each_page(url):
     page = requests.get(url, headers=headers)
     return page.text
 
+def clean_price(price):
+   return price.replace('€','').replace('.','').replace(' ','')
 
 def resolve_each_page(text):
     """the main function of this scraper resolve the page and return the result"""
@@ -165,6 +167,12 @@ def resolve_each_page(text):
     summary = soup.find('div', {'class': 'summary-left'})
     price = summary.find('div', {'class': 'price'}).find(
         'span', {'class': 'font-2'}).string
+    
+    if('consultar' in price.lower()):
+        return None
+    
+    price = clean_price(price)
+    
     name = summary.h1.text.replace('\n', '.').replace('\r', '.')
 
     if summary.find(id='js-ver-mapa-zona') == None:
@@ -217,7 +225,7 @@ def resolve_each_page(text):
     features_detail = "%;%".join(features)
     distributions_detail = "%;%".join(distributions)
     result = {
-        'price': price,
+        'price_euro': price,
         'district': district,
         'area': area,
         'room_num': roomNum,
