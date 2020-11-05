@@ -16,7 +16,8 @@ headers = {
 }
 
 # field names of our csv file.
-variables = ['price_euro',  # Mandatory
+variables = ['uid', #unique code to differentiate each row
+             'price_euro',  # Mandatory
              'district',  # Mandatory
              'area',  # Mandatory
              'room_num',  # Mandatory
@@ -41,7 +42,7 @@ bf4parser = 'lxml'
 
 
 def valid_url(url):
-    """some url are invalid because the data are not belong to the original web, they belong to the partner web."""
+    """some url are invalid because the data are not belong to the original web, they belong to the partner web site."""
     if re.match(r"^https:.*?.com/f[a|v]\d+$", url):
         return False
     return True
@@ -285,9 +286,12 @@ def page_resolve_worker(pages_url_queue,  result_queue, print_lock):
 def write_file_worker(writer, file_lock, result_queue, resolve_threads_number):
     """worker that store date in csv file"""
     done_count = 0
+    uid = 0
     while True:
         try:
             result = result_queue.get()
+            uid = uid+1
+            result['uid'] = uid
             if result == 'stop':
                 done_count = done_count+1
                 if resolve_threads_number == done_count:

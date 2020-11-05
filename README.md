@@ -1,7 +1,7 @@
 # Práctica 1: Web scraping
 
 ## Descripción
-Un dataset sobre **los pisos que están en alquiler en barcelona**, aunque el scraper está diseñado para poder recuperar otra ciudad cambiando la variable **city_name = 'barcelona'** en el main, también se puede recuperar datos de pisos en venta cambiando **search_type=sale**  en el main.
+Un dataset sobre **los pisos que están en alquiler en barcelona**, aunque el scraper está diseñado para recuperar otra ciudad cambiando la variable **city_name = 'barcelona'** en el main, también se puede recuperar datos de pisos en venta cambiando **search_type=sale**  en el main.
 
 ## Miembro del equipo
 - Daria Gracheva 
@@ -22,8 +22,8 @@ En la siguiente figura muestra el flujo de nuestro web scraper concurrente usand
 ![flujo](img/flujo.png)
 
 ## Estructura de dataset
-
-- **price**: precio mensual del alquiler 
+- **uid**: código único para indentificar cada fila
+- **price_euro**: precio mensual en euro del alquiler 
 - **district**: barrio donde se encuentra la vivienda
 - **area**: superficie de la vivienda
 - **room_num**: número de habitaciones
@@ -32,11 +32,7 @@ En la siguiente figura muestra el flujo de nuestro web scraper concurrente usand
 - **has_parking**:si hay plaza de aparcamiento incluida en el alquiler
 - **has_elevator**:si la comunidad dispone de un ascensor
 - **has_air**:si hay aire acondicionado
-- **distributions_detail**:Información adicional sobre la distribución de la casa que podría
-afectar el precio, como por ejemplo,sí tiene lavadero, sí tiene terraza,el estado de la
-cocina, etc.
-- **features_detail**:Información adicional sobre la característica del piso que puede afectar
-el precio, como por ejemplo, el piso que está, el año de construcción, si tiene buena
-vista, etc.
+- **distributions_detail**:Información adicional sobre la distribución de la casa que podría afectar el precio, como por ejemplo, sí tiene lavadero, sí tiene terraza, el estado de la cocina, etc.
+- **features_detail**:Información adicional sobre la característica del piso que podría afectar el precio, como por ejemplo, el piso que está, el año de construcción, si tiene buena vista, etc.
 - **name**: título del anuncio
 - **description**: descripción proporcionada por el anunciante
