@@ -36,3 +36,7 @@ En la siguiente figura muestra el flujo de nuestro web scraper concurrente usand
 - **features_detail**:Información adicional sobre la característica del piso que podría afectar el precio, como por ejemplo, el piso que está, el año de construcción, si tiene buena vista, etc.
 - **name**: título del anuncio
 - **description**: descripción proporcionada por el anunciante
+
+## Zenodo
+El dataset es disponible en **Zenodo**
+https://zenodo.org/record/4250855 con el DOI:10.5281/zenodo.4250855
