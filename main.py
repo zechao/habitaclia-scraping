@@ -7,7 +7,7 @@ import re
 from multiprocessing import Lock
 import queue
 import threading
-
+import click
 headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     "accept-encoding": "gzip, deflate, br",
@@ -16,7 +16,7 @@ headers = {
 }
 
 # field names of our csv file.
-variables = ['uid', #unique code to differentiate each row
+variables = ['uid',  # unique code to differentiate each row
              'price_euro',  # Mandatory
              'district',  # Mandatory
              'area',  # Mandatory
@@ -158,8 +158,10 @@ def resquest_each_page(url):
     page = requests.get(url, headers=headers)
     return page.text
 
+
 def clean_price(price):
-   return price.replace('€','').replace('.','').replace(' ','')
+    return price.replace('€', '').replace('.', '').replace(' ', '')
+
 
 def resolve_each_page(text):
     """the main function of this scraper resolve the page and return the result"""
@@ -168,12 +170,12 @@ def resolve_each_page(text):
     summary = soup.find('div', {'class': 'summary-left'})
     price = summary.find('div', {'class': 'price'}).find(
         'span', {'class': 'font-2'}).string
-    
+
     if('consultar' in price.lower()):
         return None
-    
+
     price = clean_price(price)
-    
+
     name = summary.h1.text.replace('\n', '.').replace('\r', '.')
 
     if summary.find(id='js-ver-mapa-zona') == None:
@@ -306,7 +308,7 @@ def write_file_worker(writer, file_lock, result_queue, resolve_threads_number):
         result_queue.task_done()
 
 
-def main(city_name, search_type):
+def main(city_name, search_type, output_filename):
 
     # Get max page to resolve
     max_page_number = request_page_number(search_type, city_name)
@@ -321,7 +323,7 @@ def main(city_name, search_type):
     # Queue for store pages that need be resolved
     pages_url_queue = queue.Queue(max(os.cpu_count()*20, 10))
 
-    csvfile = open('dataset.csv', 'w', newline='', encoding='utf-8')
+    csvfile = open(output_filename, 'w', newline='', encoding='utf-8')
     writer = csv.DictWriter(csvfile, fieldnames=variables)
     writer.writeheader()
 
@@ -361,8 +363,22 @@ def test_page(page_url):
     print(result)
 
 
+@click.command()
+@click.option('-city', '-c', 'city', required=True,
+              help='city name that you want to search, for example [Barcelona]')
+@click.option('--search-type', '-t', required=True,
+              type=click.Choice(["rent", "sale"], case_sensitive=False), help='type of search, house for [rent] or [sale]')
+@click.option('--output', '-o', required=False, help='name of output file default is <city_type_dataset.csv>')
+def run(city, search_type, output):
+    if search_type == "rent":
+        search_type = rent
+    if search_type == "sale":
+        search_type = sale
+    if output is None:
+        main(city, search_type, "{}_{}_dataset.csv".format(city, search_type))
+    else:
+        main(city, search_type, "{}.csv".format(output))
+
+
 if __name__ == "__main__":
-    # you can search rent or sale informaticon by setting rent or sale
-    city_name = 'barcelona'
-    search_type = rent
-    main(city_name, search_type)
+    run()
