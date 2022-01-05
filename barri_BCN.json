@@ -1,0 +1,662 @@
+{
+    "estat": "OK",
+    "resultats": [
+        {
+            "codi": "58",
+            "nom": "Baró de Viver",
+            "localitzacio": {
+                "x": 433137.31901336,
+                "y": 4588628.18825097,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "34",
+            "nom": "Can Baró",
+            "localitzacio": {
+                "x": 430034.11704569,
+                "y": 4585395.5625775494,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "47",
+            "nom": "Can Peguera",
+            "localitzacio": {
+                "x": 430408.18430498,
+                "y": 4587379.09174206,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "49",
+            "nom": "Canyelles",
+            "localitzacio": {
+                "x": 429962.16876518,
+                "y": 4588759.43593848,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "55",
+            "nom": "Ciutat Meridiana",
+            "localitzacio": {
+                "x": 431013.02725648996,
+                "y": 4590181.7397153005,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "69",
+            "nom": "Diagonal Mar i el Front Marítim del Poblenou",
+            "localitzacio": {
+                "x": 434166.19572449,
+                "y": 4584129.21824112,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "33",
+            "nom": "el Baix Guinardó",
+            "localitzacio": {
+                "x": 430284.8435384,
+                "y": 4584787.05666267,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "02",
+            "nom": "el Barri Gòtic",
+            "localitzacio": {
+                "x": 431290.33248341,
+                "y": 4581292.6586070005,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "70",
+            "nom": "el Besòs i el Maresme",
+            "localitzacio": {
+                "x": 434479.07759564003,
+                "y": 4584961.50491817,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "59",
+            "nom": "el Bon Pastor",
+            "localitzacio": {
+                "x": 433506.63632015,
+                "y": 4587945.9020739,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "64",
+            "nom": "el Camp de l'Arpa del Clot",
+            "localitzacio": {
+                "x": 431682.35256316996,
+                "y": 4584762.60590718,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "32",
+            "nom": "el Camp d'en Grassot i Gràcia Nova",
+            "localitzacio": {
+                "x": 430176.66062023997,
+                "y": 4584183.99269337,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "37",
+            "nom": "el Carmel",
+            "localitzacio": {
+                "x": 429463.03875653003,
+                "y": 4585903.6414967105,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "65",
+            "nom": "el Clot",
+            "localitzacio": {
+                "x": 432272.09566568,
+                "y": 4584574.0177930808,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "29",
+            "nom": "el Coll",
+            "localitzacio": {
+                "x": 428724.35814341,
+                "y": 4585596.12157194,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "62",
+            "nom": "el Congrés i els Indians",
+            "localitzacio": {
+                "x": 431522.05916612,
+                "y": 4586385.4886781909,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "05",
+            "nom": "el Fort Pienc",
+            "localitzacio": {
+                "x": 431579.4005927,
+                "y": 4583264.56988769,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "35",
+            "nom": "el Guinardó",
+            "localitzacio": {
+                "x": 430786.99751680996,
+                "y": 4585272.65580663,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "66",
+            "nom": "el Parc i la Llacuna del Poblenou",
+            "localitzacio": {
+                "x": 432333.22005443,
+                "y": 4583168.1458519408,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "68",
+            "nom": "el Poblenou",
+            "localitzacio": {
+                "x": 433273.15065503,
+                "y": 4583462.01491322,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "11",
+            "nom": "el Poble-sec",
+            "localitzacio": {
+                "x": 429919.77218915,
+                "y": 4580259.01394355,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "27",
+            "nom": "el Putxet i el Farró",
+            "localitzacio": {
+                "x": 428390.22448478005,
+                "y": 4584295.8185751,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "01",
+            "nom": "el Raval",
+            "localitzacio": {
+                "x": 430621.26817412,
+                "y": 4581124.06529295,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "46",
+            "nom": "el Turó de la Peira",
+            "localitzacio": {
+                "x": 430559.32179359003,
+                "y": 4587036.56916732,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "43",
+            "nom": "Horta",
+            "localitzacio": {
+                "x": 429019.38919307,
+                "y": 4588363.8218946606,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "15",
+            "nom": "Hostafrancs",
+            "localitzacio": {
+                "x": 428473.46165240003,
+                "y": 4580706.2794708507,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "03",
+            "nom": "la Barceloneta",
+            "localitzacio": {
+                "x": 432354.67783984996,
+                "y": 4581451.64301714,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "16",
+            "nom": "la Bordeta",
+            "localitzacio": {
+                "x": 427798.19940509,
+                "y": 4580018.52334848,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "42",
+            "nom": "la Clota",
+            "localitzacio": {
+                "x": 429287.36951324,
+                "y": 4586859.18994113,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "07",
+            "nom": "la Dreta de l'Eixample",
+            "localitzacio": {
+                "x": 430581.11557565,
+                "y": 4582934.81418528,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "14",
+            "nom": "la Font de la Guatlla",
+            "localitzacio": {
+                "x": 428649.95388746,
+                "y": 4580226.90726462,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "36",
+            "nom": "la Font d'en Fargues",
+            "localitzacio": {
+                "x": 430147.30091384,
+                "y": 4586309.62943679,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "48",
+            "nom": "la Guineueta",
+            "localitzacio": {
+                "x": 430557.21381467005,
+                "y": 4587779.5237377,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "13",
+            "nom": "la Marina de Port",
+            "localitzacio": {
+                "x": 427948.04790659,
+                "y": 4579003.61649765,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "12",
+            "nom": "la Marina del Prat Vermell",
+            "localitzacio": {
+                "x": 428200.17738527,
+                "y": 4576758.1739523,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "20",
+            "nom": "la Maternitat i Sant Ramon",
+            "localitzacio": {
+                "x": 426482.08556636004,
+                "y": 4581792.27661077,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "09",
+            "nom": "la Nova Esquerra de l'Eixample",
+            "localitzacio": {
+                "x": 428919.01519682,
+                "y": 4581703.33650018,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "52",
+            "nom": "la Prosperitat",
+            "localitzacio": {
+                "x": 431475.071636,
+                "y": 4588075.9437734708,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "06",
+            "nom": "la Sagrada Família",
+            "localitzacio": {
+                "x": 431274.96663707006,
+                "y": 4584178.79174538,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "61",
+            "nom": "la Sagrera",
+            "localitzacio": {
+                "x": 432274.42664237,
+                "y": 4586155.89597414,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "30",
+            "nom": "la Salut",
+            "localitzacio": {
+                "x": 429352.19686495996,
+                "y": 4584902.55750765,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "38",
+            "nom": "la Teixonera",
+            "localitzacio": {
+                "x": 428554.80383897,
+                "y": 4586019.50033811,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "53",
+            "nom": "la Trinitat Nova",
+            "localitzacio": {
+                "x": 431913.50225165,
+                "y": 4588996.17057111,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "57",
+            "nom": "la Trinitat Vella",
+            "localitzacio": {
+                "x": 432757.96980689,
+                "y": 4588935.41517867,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "41",
+            "nom": "la Vall d'Hebron",
+            "localitzacio": {
+                "x": 429032.57406122,
+                "y": 4587012.66740634,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "73",
+            "nom": "la Verneda i la Pau",
+            "localitzacio": {
+                "x": 433446.42292229005,
+                "y": 4586094.8505846011,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "31",
+            "nom": "la Vila de Gràcia",
+            "localitzacio": {
+                "x": 429614.47224218,
+                "y": 4583968.4378489405,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "67",
+            "nom": "la Vila Olímpica del Poblenou",
+            "localitzacio": {
+                "x": 432741.47097188,
+                "y": 4582422.9643038306,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "08",
+            "nom": "l'Antiga Esquerra de l'Eixample",
+            "localitzacio": {
+                "x": 429277.28861405,
+                "y": 4582211.11342236,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "19",
+            "nom": "les Corts",
+            "localitzacio": {
+                "x": 427606.88631824,
+                "y": 4582132.32421026,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "50",
+            "nom": "les Roquetes",
+            "localitzacio": {
+                "x": 431086.43952236,
+                "y": 4588832.11621167,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "24",
+            "nom": "les Tres Torres",
+            "localitzacio": {
+                "x": 427364.19174521003,
+                "y": 4583351.8960144194,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "40",
+            "nom": "Montbau",
+            "localitzacio": {
+                "x": 427941.12897578,
+                "y": 4587591.11462181,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "63",
+            "nom": "Navas",
+            "localitzacio": {
+                "x": 431996.15242514,
+                "y": 4585494.67558641,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "21",
+            "nom": "Pedralbes",
+            "localitzacio": {
+                "x": 425241.82296911,
+                "y": 4582979.9217342,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "45",
+            "nom": "Porta",
+            "localitzacio": {
+                "x": 431361.55377119,
+                "y": 4587283.8596943906,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "71",
+            "nom": "Provençals del Poblenou",
+            "localitzacio": {
+                "x": 433321.26117392,
+                "y": 4584609.57443751,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "60",
+            "nom": "Sant Andreu",
+            "localitzacio": {
+                "x": 432237.90100763,
+                "y": 4587618.3113498408,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "10",
+            "nom": "Sant Antoni",
+            "localitzacio": {
+                "x": 429724.63314056,
+                "y": 4581117.5403582007,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "39",
+            "nom": "Sant Genís dels Agudells",
+            "localitzacio": {
+                "x": 427294.03844675,
+                "y": 4586634.26619039,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "26",
+            "nom": "Sant Gervasi - Galvany",
+            "localitzacio": {
+                "x": 428385.72852974007,
+                "y": 4583173.739796,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "25",
+            "nom": "Sant Gervasi - la Bonanova",
+            "localitzacio": {
+                "x": 427299.48139232,
+                "y": 4584678.45974865,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "72",
+            "nom": "Sant Martí de Provençals",
+            "localitzacio": {
+                "x": 432908.95129706,
+                "y": 4585225.10028219,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "04",
+            "nom": "Sant Pere, Santa Caterina i la Ribera",
+            "localitzacio": {
+                "x": 431706.90231767006,
+                "y": 4581987.83765514,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "18",
+            "nom": "Sants",
+            "localitzacio": {
+                "x": 427719.88218827004,
+                "y": 4581094.44358917,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "17",
+            "nom": "Sants - Badal",
+            "localitzacio": {
+                "x": 426996.54842168,
+                "y": 4580738.04215322,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "23",
+            "nom": "Sarrià",
+            "localitzacio": {
+                "x": 425962.56776159,
+                "y": 4583966.77986552,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "54",
+            "nom": "Torre Baró",
+            "localitzacio": {
+                "x": 430838.85299825,
+                "y": 4589711.67941595,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "56",
+            "nom": "Vallbona",
+            "localitzacio": {
+                "x": 431822.53416134,
+                "y": 4590770.61582648,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "28",
+            "nom": "Vallcarca i els Penitents",
+            "localitzacio": {
+                "x": 428208.98729717004,
+                "y": 4585323.12030198,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "22",
+            "nom": "Vallvidrera, el Tibidabo i les Planes",
+            "localitzacio": {
+                "x": 423871.29167456,
+                "y": 4585918.5623475006,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "51",
+            "nom": "Verdun",
+            "localitzacio": {
+                "x": 431037.10501571005,
+                "y": 4588241.70611583,
+                "proj": "EPSG:25831"
+            }
+        },
+        {
+            "codi": "44",
+            "nom": "Vilapicina i la Torre Llobeta",
+            "localitzacio": {
+                "x": 430968.24870428,
+                "y": 4586792.03761266,
+                "proj": "EPSG:25831"
+            }
+        }
+    ]
+}
